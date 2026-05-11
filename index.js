@@ -1,20 +1,33 @@
-var express = require('express');
-var cors = require('cors');
-require('dotenv').config()
+const express = require('express');
+const multer = require('multer');
+const cors = require('cors');
 
-var app = express();
+const app = express();
 
 app.use(cors());
-app.use('/public', express.static(process.cwd() + '/public'));
 
-app.get('/', function (req, res) {
-  res.sendFile(process.cwd() + '/views/index.html');
+const upload = multer({ dest: 'uploads/' });
+
+app.get('/', (req, res) => {
+  res.send(`
+    <h2>File Metadata Microservice</h2>
+    <form action="/api/fileanalyse" method="post" enctype="multipart/form-data">
+      <input type="file" name="upfile" />
+      <button type="submit">Upload</button>
+    </form>
+  `);
 });
 
+app.post('/api/fileanalyse', upload.single('upfile'), (req, res) => {
+  res.json({
+    name: req.file.originalname,
+    type: req.file.mimetype,
+    size: req.file.size
+  });
+});
 
+const PORT = process.env.PORT || 3000;
 
-
-const port = process.env.PORT || 3000;
-app.listen(port, function () {
-  console.log('Your app is listening on port ' + port)
+app.listen(PORT, () => {
+  console.log(`Listening on port ${PORT}`);
 });
